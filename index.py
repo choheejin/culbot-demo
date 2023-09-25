@@ -1,13 +1,12 @@
 from flask import Flask, render_template, request, jsonify
-import tiktoken as tiktoken
 import os
 import re
 import time
+import pandas as pd
 import openai
 import chromadb
-import openai
 from chromadb.utils.embedding_functions import OpenAIEmbeddingFunction
-import pandas as pd
+import tiktoken as tiktoken
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 LLM_MODEL = "gpt-3.5-turbo"
