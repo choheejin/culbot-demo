@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link type="image/png" sizes="16x16" rel="icon" href="{{url_for('static', filename='img/icons8-bot-94.png')}}">
+    <style>
+        #dot1 {
+            animation: jump 1.6s -0.32s linear infinite;
+        }
+        #dot2 {
+            animation: jump 1.6s -0.16s linear infinite;
+        }
+        #dot3 {
+            animation: jump 1.6s linear infinite;
+        }
+        @keyframes jump {
+            0%, 80%, 100% {
+                -webkit-transform: scale(0);
+                transform: scale(0);
+            } 40% {
+                  -webkit-transform: scale(2.0);
+                  transform: scale(1.0);
+              }
+        }
+
+    </style>
+    <script src="https://code.jquery.com/jquery-3.4.1.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        async function handleSubmit(){
+            const input = document.getElementById("prompt-textarea");
+            const value = input.value;
+            $('#chat-container').append(
+                `<div id="user" class="flex items-start justify-start gap-4 max-sm:text-sm">
+                    <div class=""></div>
+                    <div class="rounded-2xl px-5 py-3.5 text-slate-500 dark:text-slate-400 whitespace-break-spaces">${value}</div>
+                </div>`
+            );
+            $('#prompt-textarea').val("");
+
+            $('#chat-container').append(
+                `<div id="loading-system">
+                    <div class="flex items-start justify-start gap-4 leading-relaxed">
+                    <div></div>
+                    <div class="relative rounded-2xl flex items-center prose-pre:my-2 px-5 py-3.5 border border-slate-100 bg-gradient-to-br from-slate-50 dark:from-slate-800/40 dark:border-slate-800 text-slate-600 dark:text-slate-300 min-h-[calc(2rem+theme(spacing[3.5])*2)] min-w-[100px]">
+                        <div class="flex gap-2 items-center justify-center">
+                            <div id="dot1" class="w-3 h-3 rounded-full bg-gradient-to-r from-pink-500 to-yellow-500"></div>
+                            <div id="dot2" class="w-3 h-3 rounded-full bg-gradient-to-r from-pink-500 to-yellow-500"></div>
+                            <div id="dot3" class="w-3 h-3 rounded-full bg-gradient-to-r from-pink-500 to-yellow-500"></div>
+                        </div>
+                    </div>
+                    </div>
+                </div>`
+            );
+
+            await fetch('http://localhost:8800/post', {
+                method: 'POST',
+                body: new URLSearchParams({
+                    'user': value
+                }),
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                $("#loading-system").remove();
+                if(data['result']['professor_ans'] !== ''){
+                    $('#chat-container').append(
+                        `<div id="system" class="flex items-start justify-start gap-4 leading-relaxed">
+                            <div></div>
+                            <div class="relative rounded-2xl prose-pre:my-2 px-5 py-3.5 border border-slate-100 bg-gradient-to-br from-slate-50 dark:from-slate-800/40 dark:border-slate-800 text-slate-600 dark:text-slate-300 min-h-[calc(2rem+theme(spacing[3.5])*2)] min-w-[100px]">${data['result']['bot']}
+                                <div class="flex items-between mt-3">
+                                    <div class="relative drop-shadow rounded-2xl prose-pre:my-2 px-5 py-3.5 border border-slate-200 bg-slate-100 dark:bg-slate-700 dark:border-slate-600 text-slate-700 dark:text-slate-400 min-h-[calc(1rem+theme(spacing[2])*2)] w-full">
+                                        <p>비슷한 질문에 대한 응답입니다</p>
+                                        <p>질문: ${data['result']['professor_question']}</p>
+                                        <p>교수님 응답: ${data['result']['professor_ans']}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`
+                    )
+                } else {
+                    $('#chat-container').append(
+                        `<div id="system" class="flex items-start justify-start gap-4 leading-relaxed">
+                            <div></div>
+                            <div class="relative rounded-2xl prose-pre:my-2 px-5 py-3.5 border border-slate-100 bg-gradient-to-br from-slate-50 dark:from-slate-800/40 dark:border-slate-800 text-slate-600 dark:text-slate-300 min-h-[calc(2rem+theme(spacing[3.5])*2)] min-w-[100px]">${data['result']['bot']}</div>
+                        </div>`
+                    )
+                }
+            });
+        }
+        function handleKeyPress(event) {
+            if(event.keyCode == 13){
+                event.preventDefault();
+                // console.log('11');
+                handleSubmit();
+            }
+        }
+
+    </script>
+    <title>Culbot</title>
+</head>
+<body>
+    <div class="overflow-hidden w-full h-screen relative flex z-0">
+        <div class="h-full bg-slate-100 dark:bg-slate-800">
+            <div class="w-[300px]">
+                <nav class="flex flex-col py-3.5 px-2.5">
+                    <div class="px-3">
+                        <div class="flex items-center gap-2">
+                            <img class="w-10 h-10" src="{{url_for('static', filename='img/icons8-bot-94.png')}}">
+                            <div class="dark:text-white font-bold text-xl">Culbot</div>
+                        </div>
+                        <div class="dark:text-white font-sans text-sm">Chungbuk national univesity large langauge model-based chatbot</div>
+                    </div>
+                    <ol></ol>
+                </nav>
+            </div>
+        </div>
+        <div id="loading-overlay" class="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50 hidden">
+            <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
+        </div>
+        <div class="relative flex h-full max-w-full flex-1 overflow-hidden">
+            <div class="flex h-full max-w-full flex-1 flex-col">
+                <div class="relative h-full w-full transition-width overflow-auto flex-1 dark:bg-slate-900">
+                    <main class="relative flex h-full flex-1 items-stretch md:flex-col pb-16">
+                        <div id="chat-container" class="max-w-3xl xl:max-w-4xl mx-auto px-5 pt-6 flex flex-col gap-5 sm:gap-8 h-full w-full">
+                        </div>
+                    </main>
+                </div>
+            </div>
+            <div class="absolute inset-x-0 bottom-0 w-full border-t md:border-t-0 dark:border-white/20 md:border-transparent md:dark:border-transparent md:bg-vert-light-gradient bg-white dark:bg-slate-900 dark:md:bg-vert-dark-gradient pt-2 md:pl-2 md:w-[calc(100%-.5rem)]">
+                <div id="frm" class="stretch mx-2 flex flex-row gap-3 last:mb-2 md:mx-4 md:last:mb-6 lg:mx-auto lg:max-w-2xl xl:max-w-3xl">
+                    <div class="relative flex h-full flex-1 items-stretch md:flex-col">
+                        <div class="flex w-full items-center">
+                            <div class="flex flex-col w-full flex-grow relative border border-black/10 dark:border-slate-900/50 dark:text-white rounded-xl shadow-xs dark:shadow-xs dark:bg-slate-700 bg-white">
+                                <textarea onkeydown="handleKeyPress(event)" id="prompt-textarea" name="user" tabindex="0" data-id="14e05789-0be1-48aa-89b3-d2cfbbb5a1e8" rows="1" placeholder="Send a message" class="m-0 w-full resize-none border-0 bg-transparent py-[10px] pr-10 focus:ring-0 focus-visible:ring-0 dark:bg-transparent md:py-4 md:pr-12 pl-3 md:pl-4"></textarea>
+                                <button id="myBtn" onclick="handleSubmit()"
+                                        class="absolute p-1 rounded-md md:bottom-3 md:p-2 md:right-3 dark:hover:bg-slate-900 dark:disabled:hover:bg-transparent right-2 disabled:text-slate-400 enabled:bg-brand-purple text-white bottom-1.5 transition-colors disabled:opacity-40" data-testid="send-button">
+                                                <span class="" data-state="closed">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="stroke-slate-500" class="w-4 h-4">
+                                                      <path d="M3.105 2.289a.75.75 0 00-.826.95l1.414 4.925A1.5 1.5 0 005.135 9.25h6.115a.75.75 0 010 1.5H5.135a1.5 1.5 0 00-1.442 1.086l-1.414 4.926a.75.75 0 00.826.95 28.896 28.896 0 0015.293-7.154.75.75 0 000-1.115A28.897 28.897 0 003.105 2.289z" />
+                                                    </svg>
+                                                </span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
